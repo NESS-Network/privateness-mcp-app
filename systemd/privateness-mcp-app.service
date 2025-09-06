@@ -1,0 +1,10 @@
+[Unit]
+Description=Privateness MCP App
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/privateness-mcp-app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
