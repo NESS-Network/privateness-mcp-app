@@ -1,0 +1,7 @@
+{
+  "listen": ":443",
+  "tls": true,
+  "emerdns": true,
+  "base_path": "/mcp",
+  "billing": "coinhours"
+}

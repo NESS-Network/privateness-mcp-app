@@ -1,10 +1,14 @@
 [Unit]
-Description=Privateness MCP App
+Description=privateness-mcp-app
 After=network.target
 
 [Service]
+Environment=TLS_CERT=/etc/privateness-mcp-app/cert.pem
+Environment=TLS_KEY=/etc/privateness-mcp-app/key.pem
 ExecStart=/usr/local/bin/privateness-mcp-app
 Restart=always
+User=skywire
+WorkingDirectory=/var/lib/privateness-mcp-app
 
 [Install]
 WantedBy=multi-user.target

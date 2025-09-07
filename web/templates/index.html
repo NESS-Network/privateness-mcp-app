@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privateness Node Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="bg-indigo-600 text-white p-4 rounded-lg mb-6">
+            <h1 class="text-2xl font-bold">Privateness Node Manager</h1>
+            <p class="text-indigo-100">Manage your Privateness network nodes</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Node List -->
+            <div class="md:col-span-1 bg-white rounded-lg shadow p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">Nodes</h2>
+                    <button onclick="updateNodeList()" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm hover:bg-indigo-200">
+                        Refresh
+                    </button>
+                </div>
+                
+                <div id="nodeList" class="space-y-2">
+                    <div class="p-2 text-gray-500">Loading nodes...</div>
+                </div>
+            </div>
+
+            <!-- Node Details -->
+            <div class="md:col-span-3 bg-white rounded-lg shadow p-4">
+                <div id="nodeDetails" class="text-gray-500">
+                    Select a node to view details
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load nodes when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNodeList();
+        });
+
+        // Update node list from API
+        async function updateNodeList() {
+            const nodeList = document.getElementById('nodeList');
+            nodeList.innerHTML = '<div class="p-2 text-gray-500">Loading nodes...</div>';
+
+            try {
+                const response = await fetch('/api/nodes');
+                const nodes = await response.json();
+                
+                if (nodes.error) {
+                    nodeList.innerHTML = `<div class="p-2 text-red-500">Error: ${nodes.error}</div>`;
+                    return;
+                }
+
+                if (nodes.length === 0) {
+                    nodeList.innerHTML = '<div class="p-2 text-gray-500">No nodes found</div>';
+                    return;
+                }
+
+                nodeList.innerHTML = '';
+                nodes.forEach(node => {
+                    const nodeElement = document.createElement('div');
+                    nodeElement.className = 'p-2 rounded cursor-pointer hover:bg-gray-100';
+                    nodeElement.innerHTML = `
+                        <div class="font-medium">${node.name || 'Unnamed Node'}</div>
+                        <div class="text-sm text-gray-500">${node.id || 'No ID'}</div>
+                    `;
+                    nodeElement.onclick = () => showNodeDetails(node);
+                    nodeList.appendChild(nodeElement);
+                });
+            } catch (error) {
+                nodeList.innerHTML = `<div class="p-2 text-red-500">Error loading nodes: ${error.message}</div>`;
+            }
+        }
+
+        // Show node details
+        function showNodeDetails(node) {
+            const detailsDiv = document.getElementById('nodeDetails');
+            detailsDiv.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">${node.name || 'Node Details'}</h2>
+                <div class="space-y-2">
+                    <p><span class="font-medium">ID:</span> ${node.id || 'N/A'}</p>
+                    <p><span class="font-medium">Network:</span> ${node.network || 'N/A'}</p>
+                    <p><span class="font-medium">Status:</span> ${node.status || 'N/A'}</p>
+                </div>
+                <div class="mt-6">
+                    <h3 class="font-medium mb-2">Actions</h3>
+                    <div class="space-x-2">
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                            View Details
+                        </button>
+                        <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">
+                            Update Node
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update node list from blockchain
+        async function updateFromBlockchain() {
+            try {
+                const response = await fetch('/api/nodes/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ source: 'blockchain' })
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('Node list updated successfully');
+                    updateNodeList();
+                } else {
+                    alert(`Error: ${result.message || 'Failed to update nodes'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
